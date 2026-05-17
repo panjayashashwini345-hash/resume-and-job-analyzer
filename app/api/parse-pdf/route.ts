@@ -15,22 +15,22 @@ export async function POST(req: NextRequest) {
     }
 
     const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
+    const uint8 = new Uint8Array(arrayBuffer)
 
-    // Dynamic import to avoid build-time issues with pdf-parse
-    const pdfParseMod: any = await import("pdf-parse")
-    const pdfParse = pdfParseMod.default || pdfParseMod
-    const data = await pdfParse(buffer)
-    const text = (data.text || "").trim()
+    const { extractText, getDocumentProxy } = await import("unpdf")
+    const pdf = await getDocumentProxy(uint8)
+    const { text, totalPages } = await extractText(pdf, { mergePages: true })
 
-    if (!text) {
+    const cleaned = (typeof text === "string" ? text : (text as string[]).join("\n")).trim()
+
+    if (!cleaned) {
       return NextResponse.json(
         { error: "Could not extract text from PDF. The PDF may be image-only." },
         { status: 422 },
       )
     }
 
-    return NextResponse.json({ text, pages: data.numpages ?? 0 })
+    return NextResponse.json({ text: cleaned, pages: totalPages ?? 0 })
   } catch (err: any) {
     console.error("[v0] parse-pdf error:", err)
     return NextResponse.json(
