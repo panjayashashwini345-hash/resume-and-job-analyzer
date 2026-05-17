@@ -1,7 +1,7 @@
 "use client"
 
 import { useAppStore } from "@/lib/store"
-import { ScoreRing } from "./score-ring"
+import { ScoreRing } from "@/components/score-ring"
 import { motion } from "framer-motion"
 import {
   Accordion,
