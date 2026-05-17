@@ -71,7 +71,6 @@ interface AppState {
   resumeText: string
   jobText: string
   jobUrl: string
-  apiKey: string
   practiceMode: PracticeMode
 
   // Output
@@ -101,7 +100,6 @@ interface AppState {
   setResumeText: (t: string) => void
   setJobText: (t: string) => void
   setJobUrl: (t: string) => void
-  setApiKey: (t: string) => void
   setPracticeMode: (m: PracticeMode) => void
   setAnalysisData: (d: AnalysisData | null) => void
   setUIState: (s: UIState) => void
@@ -116,7 +114,6 @@ export const useAppStore = create<AppState>((set) => ({
   resumeText: "",
   jobText: "",
   jobUrl: "",
-  apiKey: "",
   practiceMode: "quiz",
   analysisData: null,
   uiState: "input",
@@ -128,7 +125,6 @@ export const useAppStore = create<AppState>((set) => ({
   setResumeText: (resumeText) => set({ resumeText }),
   setJobText: (jobText) => set({ jobText }),
   setJobUrl: (jobUrl) => set({ jobUrl }),
-  setApiKey: (apiKey) => set({ apiKey }),
   setPracticeMode: (practiceMode) => set({ practiceMode }),
   setAnalysisData: (analysisData) => set({ analysisData }),
   setUIState: (uiState) => set({ uiState }),

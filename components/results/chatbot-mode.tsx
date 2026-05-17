@@ -12,7 +12,7 @@ import { toast } from "sonner"
 
 export function ChatbotMode() {
   const data = useAppStore((s) => s.analysisData)!
-  const { apiKey, chatState, setChatState } = useAppStore()
+  const { chatState, setChatState } = useAppStore()
   const [input, setInput] = useState("")
   const [streaming, setStreaming] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -64,7 +64,6 @@ export function ChatbotMode() {
     try {
       let acc = ""
       await streamInterviewReply({
-        apiKey,
         jobTitle: data.jobTitle,
         history: newMessages,
         nextQuestion,

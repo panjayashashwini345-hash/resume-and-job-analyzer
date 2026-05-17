@@ -10,7 +10,6 @@ export function AnalyzeButton() {
   const {
     resumeText,
     jobText,
-    apiKey,
     uiState,
     setUIState,
     setLoadingStep,
@@ -20,7 +19,6 @@ export function AnalyzeButton() {
   const missing: string[] = []
   if (!resumeText.trim()) missing.push("resume")
   if (!jobText.trim()) missing.push("job description")
-  if (!apiKey.trim()) missing.push("API key")
   const disabled = missing.length > 0 || uiState === "loading"
 
   async function analyze() {
@@ -30,14 +28,12 @@ export function AnalyzeButton() {
     }
     setUIState("loading")
     setLoadingStep(0)
-    // Visual progress steps for the loading overlay
     const stepTimers = [
       setTimeout(() => setLoadingStep(1), 500),
       setTimeout(() => setLoadingStep(2), 1500),
     ]
     try {
       const data = await runAnalysis({
-        apiKey,
         resumeText,
         jobText,
         onStep: (n) => setLoadingStep(n),
@@ -49,7 +45,7 @@ export function AnalyzeButton() {
       toast.success("Analysis complete")
     } catch (e: any) {
       console.error("[v0] analyze error", e)
-      toast.error(e?.message || "Analysis failed. Check your API key.")
+      toast.error(e?.message || "Analysis failed.")
       setUIState("input")
     } finally {
       stepTimers.forEach(clearTimeout)
@@ -66,7 +62,7 @@ export function AnalyzeButton() {
       >
         {uiState === "loading" ? (
           <>
-            <Loader2 className="h-5 w-5 animate-spin" /> Analyzing…
+            <Loader2 className="h-5 w-5 animate-spin" /> Analyzing&hellip;
           </>
         ) : (
           <>
