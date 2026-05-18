@@ -15,8 +15,16 @@ import {
   Loader2,
   Check,
   X,
+  CheckCircle2,
+  AlertCircle,
+  Target,
+  TrendingUp,
+  FileText,
+  FileType2,
+  Zap,
 } from "lucide-react"
 import { generatePdfReport } from "@/lib/pdf-report"
+import { generateDocxReport } from "@/lib/docx-report"
 import { toast } from "sonner"
 
 const VERDICT_META: Record<
@@ -45,25 +53,118 @@ const VERDICT_META: Record<
   },
 }
 
+type Format = "pdf" | "docx"
+
 export function SummaryTab() {
   const data = useAppStore((s) => s.analysisData)!
-  const [generating, setGenerating] = useState(false)
+  const [generating, setGenerating] = useState<Format | null>(null)
+  const [selected, setSelected] = useState<Format | null>(null)
   const meta = VERDICT_META[data.verdict] || VERDICT_META["Partial Fit"]
 
-  async function downloadPdf() {
-    setGenerating(true)
+  async function download(format: Format) {
+    setSelected(format)
+    setGenerating(format)
     try {
-      await generatePdfReport(data)
-      toast.success("PDF downloaded")
+      if (format === "pdf") {
+        await generatePdfReport(data)
+        toast.success("PDF downloaded")
+      } else {
+        await generateDocxReport(data)
+        toast.success("Word document downloaded")
+      }
     } catch (e: any) {
-      toast.error(e?.message || "PDF generation failed")
+      toast.error(e?.message || "Report generation failed")
     } finally {
-      setGenerating(false)
+      setGenerating(null)
     }
   }
 
+  const top3 = [...data.improvements]
+    .sort((a, b) => {
+      const o = { HIGH: 0, MED: 1, LOW: 2 }
+      return o[a.priority] - o[b.priority]
+    })
+    .slice(0, 3)
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* === UNMISSABLE KEY TAKEAWAYS === */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          x: [0, -3, 3, -2, 2, 0],
+        }}
+        transition={{
+          opacity: { duration: 0.4 },
+          y: { duration: 0.4 },
+          x: { duration: 0.6, delay: 0.5 },
+        }}
+        className="amber-pulse-wrap relative rounded-3xl p-[2px]"
+      >
+        <div className="relative rounded-3xl bg-gradient-to-br from-amber-500/15 via-amber-400/8 to-transparent p-6 md:p-8 backdrop-blur-xl border border-amber-500/20 overflow-hidden">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-40"
+            style={{
+              background:
+                "radial-gradient(circle at 20% 0%, rgba(245,158,11,0.18), transparent 50%), radial-gradient(circle at 80% 100%, rgba(245,158,11,0.14), transparent 50%)",
+            }}
+            aria-hidden
+          />
+          <div className="relative flex items-center gap-3 mb-4 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 text-amber-950 px-3 py-1 text-[11px] font-bold uppercase tracking-wider amber-flash">
+              <Zap className="h-3.5 w-3.5" /> Don&apos;t Skip This
+            </span>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-amber-100 leading-tight">
+              Key Takeaways
+            </h2>
+          </div>
+
+          <p className="relative text-base md:text-lg leading-relaxed text-foreground/95">
+            <span className="font-semibold text-amber-200">
+              {data.candidateName}
+            </span>{" "}
+            for{" "}
+            <span className="font-semibold text-amber-200">
+              {data.jobTitle} @ {data.company}
+            </span>{" "}
+            — {data.summary}
+          </p>
+
+          <div className="relative mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <TakeawayItem
+              Icon={CheckCircle2}
+              tone="emerald"
+              label="Strengths"
+              value={`${data.matchedSkills.length} matched skills`}
+              detail={data.matchedSkills.slice(0, 3).join(", ") || "—"}
+            />
+            <TakeawayItem
+              Icon={AlertCircle}
+              tone="rose"
+              label="Gaps"
+              value={`${data.missingSkills.length} missing skills`}
+              detail={data.missingSkills.slice(0, 3).join(", ") || "—"}
+            />
+            <TakeawayItem
+              Icon={Target}
+              tone="amber"
+              label="Focus Areas"
+              value={`${top3.length} priority actions`}
+              detail={top3.map((t) => t.title).join(" · ") || "—"}
+            />
+            <TakeawayItem
+              Icon={TrendingUp}
+              tone="cyan"
+              label="Score"
+              value={`${data.overallScore}% — ${data.verdict}`}
+              detail={`${data.totalPrepWeeks} weeks of prep recommended`}
+            />
+          </div>
+        </div>
+      </motion.div>
+
       {/* Verdict banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -143,37 +244,31 @@ export function SummaryTab() {
       </div>
 
       {/* Top 3 priority actions */}
-      {data.improvements.length > 0 && (
+      {top3.length > 0 && (
         <div className="rounded-2xl glass p-6">
           <h3 className="font-display font-semibold mb-4">
             Top Priority Actions
           </h3>
           <div className="space-y-3">
-            {[...data.improvements]
-              .sort((a, b) => {
-                const o = { HIGH: 0, MED: 1, LOW: 2 }
-                return o[a.priority] - o[b.priority]
-              })
-              .slice(0, 3)
-              .map((imp, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  className="flex gap-4 rounded-xl bg-muted/30 p-4"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-500/15 text-rose-400 font-display font-bold">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <h4 className="font-display font-semibold">{imp.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {imp.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+            {top3.map((imp, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.08 }}
+                className="flex gap-4 rounded-xl bg-muted/30 p-4"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-500/15 text-rose-400 font-display font-bold">
+                  {i + 1}
+                </span>
+                <div>
+                  <h4 className="font-display font-semibold">{imp.title}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {imp.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       )}
@@ -185,37 +280,149 @@ export function SummaryTab() {
           skills={data.matchedSkills}
           tone="success"
         />
-        <SkillCloud
-          title="Missing"
-          skills={data.missingSkills}
-          tone="danger"
-        />
+        <SkillCloud title="Missing" skills={data.missingSkills} tone="danger" />
       </div>
 
-      {/* PDF Download */}
+      {/* === DUAL FORMAT DOWNLOAD === */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex justify-center pt-4"
+        className="rounded-2xl glass p-6 md:p-8"
       >
-        <Button
-          onClick={downloadPdf}
-          disabled={generating}
-          size="lg"
-          className="h-14 px-8 text-base font-semibold bg-gradient-to-r from-indigo-500 to-cyan-500 text-white border-0 pulse-glow"
-        >
-          {generating ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" /> Generating PDF…
-            </>
-          ) : (
-            <>
-              <FileDown className="h-5 w-5" /> Download Full PDF Report
-            </>
-          )}
-        </Button>
+        <div className="text-center mb-6">
+          <h3 className="font-display text-2xl font-bold">
+            Download Your Full Report
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Choose your preferred format
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <DownloadCard
+            format="pdf"
+            label="Download as PDF"
+            description="Polished, ready to share"
+            Icon={FileText}
+            selected={selected === "pdf"}
+            generating={generating === "pdf"}
+            disabled={generating !== null}
+            onClick={() => download("pdf")}
+          />
+          <DownloadCard
+            format="docx"
+            label="Download as Word (.docx)"
+            description="Editable in Microsoft Word"
+            Icon={FileType2}
+            selected={selected === "docx"}
+            generating={generating === "docx"}
+            disabled={generating !== null}
+            onClick={() => download("docx")}
+          />
+        </div>
       </motion.div>
     </div>
+  )
+}
+
+function TakeawayItem({
+  Icon,
+  tone,
+  label,
+  value,
+  detail,
+}: {
+  Icon: any
+  tone: "emerald" | "rose" | "amber" | "cyan"
+  label: string
+  value: string
+  detail: string
+}) {
+  const map = {
+    emerald: "text-emerald-300 bg-emerald-500/10 border-emerald-500/30",
+    rose: "text-rose-300 bg-rose-500/10 border-rose-500/30",
+    amber: "text-amber-300 bg-amber-500/10 border-amber-500/30",
+    cyan: "text-cyan-300 bg-cyan-500/10 border-cyan-500/30",
+  }[tone]
+  return (
+    <div className={`rounded-xl border p-4 ${map}`}>
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4" />
+        <span className="text-[11px] uppercase tracking-wider font-semibold">
+          {label}
+        </span>
+      </div>
+      <p className="mt-1.5 font-display font-semibold text-base text-foreground">
+        {value}
+      </p>
+      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{detail}</p>
+    </div>
+  )
+}
+
+function DownloadCard({
+  label,
+  description,
+  Icon,
+  selected,
+  generating,
+  disabled,
+  onClick,
+}: {
+  format: Format
+  label: string
+  description: string
+  Icon: any
+  selected: boolean
+  generating: boolean
+  disabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <motion.button
+      whileHover={{ scale: disabled ? 1 : 1.02 }}
+      whileTap={{ scale: disabled ? 1 : 0.98 }}
+      animate={{
+        scale: selected ? 1.03 : 1,
+      }}
+      onClick={onClick}
+      disabled={disabled}
+      className={`group relative overflow-hidden rounded-2xl border p-6 text-left transition-all ${
+        selected
+          ? "border-primary/60 bg-gradient-to-br from-violet-500/15 to-cyan-500/15 shadow-[0_0_40px_rgba(124,58,237,0.35)]"
+          : "border-border/50 glass hover:border-primary/40"
+      } disabled:cursor-not-allowed disabled:opacity-70`}
+    >
+      <div className="flex items-start gap-4">
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
+            selected
+              ? "bg-gradient-to-br from-violet-500 to-cyan-500 text-white"
+              : "bg-muted/40 text-primary"
+          }`}
+        >
+          {generating ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Icon className="h-5 w-5" />
+          )}
+        </div>
+        <div className="flex-1">
+          <h4 className="font-display font-semibold text-base flex items-center gap-2">
+            {label}
+            {generating && (
+              <span className="text-xs font-normal text-muted-foreground">
+                generating...
+              </span>
+            )}
+          </h4>
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+            <FileDown className="h-3.5 w-3.5" />
+            {generating ? "Working…" : "Click to download"}
+          </div>
+        </div>
+      </div>
+    </motion.button>
   )
 }
 
@@ -240,7 +447,11 @@ function StatCard({
 
 function ScoreBar({ label, value }: { label: string; value: number }) {
   const color =
-    value >= 75 ? "from-emerald-500 to-emerald-400" : value >= 50 ? "from-amber-500 to-amber-400" : "from-rose-500 to-rose-400"
+    value >= 75
+      ? "from-emerald-500 to-emerald-400"
+      : value >= 50
+        ? "from-amber-500 to-amber-400"
+        : "from-rose-500 to-rose-400"
   return (
     <div>
       <div className="flex justify-between text-sm mb-1.5">
