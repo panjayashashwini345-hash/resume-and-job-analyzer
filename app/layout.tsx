@@ -8,9 +8,9 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const syne = Syne({ subsets: ["latin"], variable: "--font-syne" })
 
 export const metadata: Metadata = {
-  title: "FitScope — AI Resume & Job Fit Analyzer",
+  title: "Ace Prep AI — Crack every interview. Powered by AI.",
   description:
-    "AI-powered resume analysis, skill gap detection, mock interviews & personalized prep plans. Know your fit before the interview.",
+    "AI-powered resume analysis, skill gap detection, mock interviews & personalized prep plans — all in one place.",
   generator: "v0.app",
 }
 
