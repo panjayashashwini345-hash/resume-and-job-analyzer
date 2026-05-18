@@ -5,7 +5,6 @@ import { useAppStore } from "@/lib/store"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Target,
-  Layers,
   Brain,
   Wrench,
   CalendarRange,
@@ -13,16 +12,14 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SkillMatchTab } from "./results/skill-match-tab"
-import { InterviewRoundsTab } from "./results/interview-rounds-tab"
+import { SkillsAndRoundsTab } from "./results/skills-and-rounds-tab"
 import { PracticeTab } from "./results/practice-tab"
 import { ImprovementsTab } from "./results/improvements-tab"
 import { PrepPlanTab } from "./results/prep-plan-tab"
 import { SummaryTab } from "./results/summary-tab"
 
 const TABS = [
-  { id: "match", label: "Skill Match", Icon: Target, Component: SkillMatchTab },
-  { id: "rounds", label: "Interview Rounds", Icon: Layers, Component: InterviewRoundsTab },
+  { id: "fit", label: "Skills & Rounds", Icon: Target, Component: SkillsAndRoundsTab },
   { id: "practice", label: "Practice", Icon: Brain, Component: PracticeTab },
   { id: "improvements", label: "Improvements", Icon: Wrench, Component: ImprovementsTab },
   { id: "prep", label: "Prep Plan", Icon: CalendarRange, Component: PrepPlanTab },
@@ -31,12 +28,12 @@ const TABS = [
 
 export function ResultsPanel() {
   const { uiState, reset, analysisData } = useAppStore()
-  const [active, setActive] = useState<(typeof TABS)[number]["id"]>("match")
+  const [active, setActive] = useState<(typeof TABS)[number]["id"]>("fit")
 
   if (uiState !== "results" || !analysisData) return null
 
   const ActiveComp =
-    TABS.find((t) => t.id === active)?.Component || SkillMatchTab
+    TABS.find((t) => t.id === active)?.Component || SkillsAndRoundsTab
 
   return (
     <section className="relative mx-auto max-w-6xl px-4 md:px-6 py-12">
@@ -69,7 +66,7 @@ export function ResultsPanel() {
                   {isActive && (
                     <motion.span
                       layoutId="tab-indicator"
-                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500"
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-500"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}

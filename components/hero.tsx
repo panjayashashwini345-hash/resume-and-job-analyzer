@@ -4,13 +4,18 @@ import { motion } from "framer-motion"
 import { ChevronDown, Sparkles } from "lucide-react"
 import { Particles } from "./particles"
 
-const headline = "Know Your Fit Before the Interview"
+const headline = "Crack every interview."
+const headline2 = "Powered by AI."
 
 export function Hero() {
   const words = headline.split(" ")
+  const words2 = headline2.split(" ")
   return (
     <section className="relative overflow-hidden border-b border-border/40">
       <div className="gradient-mesh absolute inset-0" aria-hidden />
+      <div className="orb orb-purple" aria-hidden />
+      <div className="orb orb-cyan" aria-hidden />
+      <div className="orb orb-indigo" aria-hidden />
       <Particles count={28} />
 
       <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28 text-center">
@@ -21,21 +26,29 @@ export function Hero() {
           className="mb-6 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-medium text-muted-foreground"
         >
           <Sparkles className="h-3.5 w-3.5 text-primary" />
-          Powered by GPT-4o · Client-side only
+          Ace Prep AI · Powered by GPT-4o
         </motion.div>
 
-        <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance">
+        <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance leading-[1.05]">
           {words.map((w, i) => (
             <motion.span
-              key={i}
+              key={`a-${i}`}
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0)" }}
               transition={{ duration: 0.5, delay: 0.1 + i * 0.07 }}
-              className={
-                w === "Fit"
-                  ? "gradient-text inline-block mr-3"
-                  : "inline-block mr-3"
-              }
+              className="inline-block mr-3"
+            >
+              {w}
+            </motion.span>
+          ))}
+          <br />
+          {words2.map((w, i) => (
+            <motion.span
+              key={`b-${i}`}
+              initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0)" }}
+              transition={{ duration: 0.5, delay: 0.4 + i * 0.07 }}
+              className="gradient-text inline-block mr-3"
             >
               {w}
             </motion.span>
@@ -45,7 +58,7 @@ export function Hero() {
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
           className="mx-auto mt-6 max-w-2xl text-base md:text-lg text-muted-foreground text-pretty leading-relaxed"
         >
           AI-powered resume analysis, skill gap detection, mock interviews &amp;
